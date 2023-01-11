@@ -36,7 +36,13 @@
     <ClInclude Include="NN\Network.h">
       <Filter>Framework Files</Filter>
     </ClInclude>
-    <ClInclude Include="Neuron.h">
+    <ClInclude Include="NN\Neuron.h">
+      <Filter>Framework Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NN\TrainingData.h">
+      <Filter>Framework Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NN\Utils.h">
       <Filter>Framework Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,7 +56,10 @@
     <ClCompile Include="NN\Network.cpp">
       <Filter>Game Files</Filter>
     </ClCompile>
-    <ClCompile Include="Neuron.cpp">
+    <ClCompile Include="NN\Neuron.cpp">
+      <Filter>Game Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NN\TrainingData.cpp">
       <Filter>Game Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,5 +75,8 @@
     <Image Include="SnakeNN.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TrainingData\trainingData.txt" />
   </ItemGroup>
 </Project>
