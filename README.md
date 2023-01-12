@@ -36,10 +36,10 @@ My neural network takes the current frames gamestate and transforms it in follow
  - Whether the cell to right of the head is a body part
 
  these will then be transformed into 4 outputs:
- - go up
- - go down
- - go left
- - go right
+ - Go up
+ - Go down
+ - Go left
+ - Go right
 
  The ai will then change direction into the output with the highest percentage. 
 
