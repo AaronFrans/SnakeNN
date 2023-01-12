@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <memory>
+#include <string>
 #include "Neuron.h"
 #include "DataStruct.h"
 #include "Snake\Snake.h"
@@ -34,13 +35,16 @@ public:
 	Snake* ResetSnake() { m_Snake.reset(); m_Snake = std::make_unique<Snake>(40, 40); return m_Snake.get(); };
 
 	std::vector<Layer> GetLayerInfo()const { return m_Layers; };
-	void SetLayerInfo(const std::vector<Layer>& newLayers) { m_Layers = newLayers; };
+	void SetLayerInfo(const std::vector<Layer> newLayers) { m_Layers = newLayers; };
+
+
+	static void SerializeLayers(std::wstring path, Network* n);
+	static void DeserializeLayers(std::wstring path, std::vector<Layer>& layers);
 
 	bool IsDrawn() const { return m_IsDrawn; };
 private:
 
 	std::vector<Layer> m_Layers;
-
 
 
 	std::unique_ptr<Snake> m_Snake;

@@ -141,6 +141,7 @@
     <ClInclude Include="Snake\Utils.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="NN\TrainingData.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

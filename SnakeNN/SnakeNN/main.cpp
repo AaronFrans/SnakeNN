@@ -6,6 +6,7 @@
 #include "NN\Network.h"
 #include "NN\DataStruct.h"
 #include "NN\TrainingData.h"
+#include "Utils.h"
 
 //#define TRAINXOR
 #define TRAINSNAKE
@@ -16,6 +17,8 @@ constexpr int WND_HEIGHT = 500;
 constexpr int NUM_DRAWN_SNAKES = 1;
 
 std::vector<Network*> g_NNs;
+
+bool g_IsPaused{ false };
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -49,6 +52,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		snake = new Snake(rows, cols);
 #endif // TRAINSNAKE
 
+
+		std::wstring filename = Utils::OpenFile(L"Snake NN File (*.snn)\0*.snn\0", hWnd);
+
+		if (!filename.empty())
+		{
+			std::vector<Layer> layersFromFile{};
+			Network::DeserializeLayers(filename, layersFromFile);
+			for (auto& network : g_NNs)
+			{
+				network->SetLayerInfo(layersFromFile);
+			}
+		}
+
 		if (!SetTimer(hWnd, ID_TIMER, 80, NULL))
 		{
 			MessageBox(hWnd, L"Could not set timer!", L"Error", MB_OK | MB_ICONEXCLAMATION);
@@ -71,6 +87,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_TIMER:
 	{
+
+		if (g_IsPaused) break;
 		RECT rcClient;
 		HDC hdc = GetDC(hWnd);
 
@@ -82,7 +100,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		for (auto& nn : g_NNs)
 		{
 			if (!nn->GetSnake()->IsDead())
-			nn->UpdateSnake();
+				nn->UpdateSnake();
 		}
 
 		//check if all dead -> reset all
@@ -113,13 +131,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		//while main nn not dead draw it
 		if (!snake->IsDead())
-		snake->DrawBitmap(hdc, &rcClient, info);
+			snake->DrawBitmap(hdc, &rcClient, info);
 
 		ReleaseDC(hWnd, hdc);
 		break;
 	}
 	case WM_KEYDOWN:
-		snake->HandleKey(wParam);
+		switch (wParam)
+		{
+		case VK_F2:
+		{
+			g_IsPaused = true;
+			std::wstring filename = Utils::SaveFile(L"Snake NN File (*.snn)\0*.snn\0", hWnd);
+			if (!filename.empty())
+			{
+				Network::SerializeLayers(filename, g_NNs[0]);
+			}
+			g_IsPaused = false;
+		}
+		default:
+			break;
+		}
 		break;
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
@@ -186,6 +218,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #endif
 #ifdef TRAINSNAKE
 	g_NNs.push_back(new Network(std::vector<unsigned>{Inputs::NrOfInputs, 4, 4, Outputs::NrOfOutputs}));
+	g_NNs.push_back(new Network(std::vector<unsigned>{Inputs::NrOfInputs, 4, 4, Outputs::NrOfOutputs}));
 
 	for (int i = 0; i < 30; i++)
 	{
@@ -198,6 +231,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	WNDCLASS wc;
 	HWND hWnd;
+	HWND hWnd2;
 	MSG msg;
 
 	wc.style = CS_HREDRAW | CS_VREDRAW;
