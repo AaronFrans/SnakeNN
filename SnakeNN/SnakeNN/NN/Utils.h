@@ -1,5 +1,6 @@
-#ifndef UTILS
-#define UTILS
+#ifndef UTILSNN
+#define UTILSNN
+#include <string>
 
 namespace Utils 
 {
@@ -14,9 +15,6 @@ namespace Utils
 			OutputDebugString(itemInfo.c_str());
 		}
 	}
-
 }
-
-
 #endif
 

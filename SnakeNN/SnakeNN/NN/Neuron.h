@@ -43,6 +43,7 @@ private:
 
 	static float Eta; // range [0.f , 1.f]
 	static float Alpha;// range [0.f , 1.f]
+
 };
 #endif
 

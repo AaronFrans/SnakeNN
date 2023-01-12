@@ -45,6 +45,12 @@
     <ClInclude Include="NN\Utils.h">
       <Filter>Framework Files</Filter>
     </ClInclude>
+    <ClInclude Include="NN\DataStruct.h">
+      <Filter>Framework Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Snake\Utils.h">
+      <Filter>Framework Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

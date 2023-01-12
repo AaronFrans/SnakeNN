@@ -66,7 +66,7 @@ void Neuron::UpdateInputWeights(Layer& prevLayer)
 float Neuron::TransformFunction(float x)
 {
 
-	return tanh(x);
+	return tanhf(x);
 }
 
 float Neuron::TransformFunctionDerivitave(float x)

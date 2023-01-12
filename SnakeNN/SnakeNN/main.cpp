@@ -2,12 +2,20 @@
 #include <string>
 #include <cassert>
 #include "Snake\Snake.h"
-#include "NN\Network.h"
-#include "NN\TrainingData.h"
 #include "NN\Utils.h"
+#include "NN\Network.h"
+#include "NN\DataStruct.h"
+#include "NN\TrainingData.h"
+
+//#define TRAINXOR
+#define TRAINSNAKE
 
 constexpr int WND_WIDTH = 500;
 constexpr int WND_HEIGHT = 500;
+
+constexpr int NUM_DRAWN_SNAKES = 1;
+
+std::vector<Network*> g_NNs;
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -19,6 +27,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 	{
+
 		int rows = 40;
 		int cols = 40;
 
@@ -34,7 +43,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		info.bmiHeader.biClrUsed = 0;
 		info.bmiHeader.biClrImportant = 0;
 
+#ifdef TRAINSNAKE
+		snake = g_NNs[0]->GetSnake();
+#else
 		snake = new Snake(rows, cols);
+#endif // TRAINSNAKE
 
 		if (!SetTimer(hWnd, ID_TIMER, 80, NULL))
 		{
@@ -62,7 +75,44 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		HDC hdc = GetDC(hWnd);
 
 		GetClientRect(hWnd, &rcClient);
-		snake->Update(hWnd);
+		//update the nn to work with 
+		//snake->Update(hWnd);
+
+		//train all nn
+		for (auto& nn : g_NNs)
+		{
+			if (!nn->GetSnake()->IsDead())
+			nn->UpdateSnake();
+		}
+
+		//check if all dead -> reset all
+		if (snake->IsDead())
+		{
+			int bestScoreIdx{ 0 };
+			int bestScore{ INT_MIN };
+			for (unsigned i = 0; i < g_NNs.size(); i++)
+			{
+				int score = g_NNs[i]->GetSnake()->GetScore();
+				if (score > bestScore)
+				{
+					bestScore = score;
+					bestScoreIdx = i;
+				}
+			}
+
+			std::vector<Layer> bestLayers = g_NNs[bestScoreIdx]->GetLayerInfo();
+
+			for (unsigned i = NUM_DRAWN_SNAKES; i < g_NNs.size(); i++)
+			{
+				g_NNs[i]->SetLayerInfo(bestLayers);
+				g_NNs[i]->ResetSnake();
+			}
+
+			snake = g_NNs[0]->ResetSnake();
+		}
+
+		//while main nn not dead draw it
+		if (!snake->IsDead())
 		snake->DrawBitmap(hdc, &rcClient, info);
 
 		ReleaseDC(hWnd, hdc);
@@ -75,7 +125,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		DestroyWindow(hWnd);
 		break;
 	case WM_DESTROY:
+#ifndef TRAINSNAKE
 		delete snake;
+#endif // !TRAINSNAKE
+
+
 		PostQuitMessage(0);
 		break;
 	default:
@@ -88,11 +142,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 
+#ifdef TRAINXOR
 	TrainingData data(L"TrainingData/trainingData.txt");
 	std::vector<unsigned> topology;
 
 	data.GetTopology(topology);
-	Network nn(topology);
+	Network nn(topology, 1);
 
 
 	std::vector<float> inputs, targets, results;
@@ -106,7 +161,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		OutputDebugString(output.c_str());
 
 		if (data.GetNextInputs(inputs) != topology[0])
-		break;
+			break;
 
 		Utils::ShowVectorVals(L"Inputs: \n", inputs);
 		nn.FeedForward(inputs);
@@ -126,6 +181,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	OutputDebugString(L"Done\n");
 
+
+
+#endif
+#ifdef TRAINSNAKE
+	g_NNs.push_back(new Network(std::vector<unsigned>{Inputs::NrOfInputs, 4, 4, Outputs::NrOfOutputs}));
+
+	for (int i = 0; i < 30; i++)
+	{
+		g_NNs.push_back(new Network(std::vector<unsigned>{Inputs::NrOfInputs, 4, 4, Outputs::NrOfOutputs}, false));
+	}
+#endif // TRAINSNAKE
 
 
 	const TCHAR szClassName[] = TEXT("MyClass");

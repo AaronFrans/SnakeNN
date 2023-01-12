@@ -1,8 +1,9 @@
 #include <cassert>
 #include "Network.h"
 
-Network::Network(const std::vector<unsigned>& topology)
+Network::Network(const std::vector<unsigned>& topology, bool isDrawn)
 {
+	m_IsDrawn = isDrawn;
 	unsigned numLayers = static_cast<int>(topology.size());
 
 	for (unsigned currentLayer{ 0 }; currentLayer < numLayers; ++currentLayer)
@@ -23,6 +24,69 @@ Network::Network(const std::vector<unsigned>& topology)
 
 		m_Layers.back().back().SetOutput(1.f);
 	}
+
+	m_Snake = std::make_unique<Snake>(40, 40);
+
+}
+
+void Network::UpdateSnake()
+{
+	//when allive run trough nn and update direction
+	//give state to nn
+
+	if (m_IsDrawn)
+	{
+		Outputs targets{};
+
+		targets = m_Snake->GetBestDir();
+
+		FeedForward(m_Snake->GetState());
+
+		Outputs results{};
+
+		GetResults(results);
+
+		//sample from results
+
+		m_Snake->UpdateDir(results);
+
+
+		BackProp(targets);
+		//check direction for + point
+
+		m_Snake->Update();
+	}
+	else
+	{
+		for (int i = 0; i < 100; i++)
+		{
+	
+			Outputs targets{};
+	
+			targets = m_Snake->GetBestDir();
+	
+			FeedForward(m_Snake->GetState());
+	
+			Outputs results{};
+	
+			GetResults(results);
+	
+			//sample from results
+	
+			m_Snake->UpdateDir(results);
+	
+	
+			BackProp(targets);
+			//check direction for + point
+
+			m_Snake->Update();
+			if (m_Snake->IsDead())
+				break;
+		}
+	}
+
+
+
 
 }
 
@@ -45,6 +109,13 @@ void Network::FeedForward(const std::vector<float>& inputs)
 			m_Layers[layer][neuron].FeedForward(prevLayer);
 		}
 	}
+}
+
+void Network::FeedForward(const Inputs& input)
+{
+	std::vector<float> inputs{};
+	input.ToVector(inputs);
+	FeedForward(inputs);
 }
 
 void Network::BackProp(const std::vector<float>& targets)
@@ -106,6 +177,14 @@ void Network::BackProp(const std::vector<float>& targets)
 
 }
 
+void Network::BackProp(const Outputs& targets)
+{
+
+	std::vector<float> outputs{};
+	targets.ToVector(outputs);
+	BackProp(outputs);
+}
+
 void Network::GetResults(std::vector<float>& results) const
 {
 	results.clear();
@@ -114,4 +193,11 @@ void Network::GetResults(std::vector<float>& results) const
 
 	for (unsigned neuron = 0; neuron < outputLayer.size() - 1; ++neuron)
 		results.push_back(outputLayer[neuron].GetOutput());
+}
+
+void Network::GetResults(Outputs& output) const
+{
+	const Layer& outputLayer = m_Layers.back();
+
+	output = Outputs::FromLayer(outputLayer);
 }
