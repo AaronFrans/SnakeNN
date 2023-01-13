@@ -48,7 +48,7 @@ My neural network takes the current frames gamestate and transforms it in follow
 
 
 ## Resources Used
-Original Snake Code from: https://codereview.stackexchange.com/questions/263298/win32-snake-game
+Original Snake Code from: https://codereview.stackexchange.com/questions/263298/win32-snake-game  
 How to make a neural network: https://www.youtube.com/watch?v=sK9AbJ4P8ao  
 What is a neural network: https://www.youtube.com/watch?v=aircAruvnKk  
 Making an neural network with snake: https://towardsdatascience.com/today-im-going-to-talk-about-a-small-practical-example-of-using-neural-networks-training-one-to-6b2cbd6efdb3
